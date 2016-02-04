@@ -11,7 +11,9 @@ var assert = require('assert'),
     path = require('path'),
     async = require('async'),
     vows = require('vows'),
-    portfinder = require('../lib/portfinder');
+    portfinder = require('../lib/portfinder'),
+    fs = require('fs'),
+    glob = require('glob');
 
 var servers = [],
     socketDir = path.join(__dirname, 'fixtures'),
@@ -36,7 +38,16 @@ vows.describe('portfinder').addBatch({
   "When using portfinder module": {
     "with 5 existing servers": {
       topic: function () {
-        createServers(this.callback);
+        var that = this;
+        fs.rmdirSync(badDir);
+        glob(path.resolve(socketDir, '*'), function (er, files) {
+          for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
+          createServers(function() {
+            portfinder.getSocket({
+              path: path.join(badDir, 'test.sock')
+            }, that.callback);
+          });
+        });
       },
       "the getPort() method": {
         topic: function () {
@@ -58,7 +69,7 @@ vows.describe('portfinder').addBatch({
         "with a directory that doesnt exist": {
           topic: function () {
             var that = this;
-            exec('rm -rf ' + badDir, function () {
+            fs.rmdir(badDir, function () {
               portfinder.getSocket({
                 path: path.join(badDir, 'test.sock')
               }, that.callback);
@@ -86,7 +97,10 @@ vows.describe('portfinder').addBatch({
 }).addBatch({
   "When the tests are over": {
     "necessary cleanup should take place": function () {
-      exec('rm -rf ' + badDir + ' ' + path.join(socketDir, '*'), function () { });
+      fs.rmdirSync(badDir);
+      glob(path.resolve(socketDir, '*'), function (er, files) {
+        for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
+      });
     }
   }
 }).export(module);
