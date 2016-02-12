@@ -34,20 +34,24 @@ function createServers (callback) {
     }, callback);
 }
 
+function cleanup(callback) {
+  fs.rmdirSync(badDir);
+  glob(path.resolve(socketDir, '*'), function (err, files) {
+    if (err) { callback(err); }
+    for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
+    callback(null, true);
+  });
+}
+
 vows.describe('portfinder').addBatch({
   "When using portfinder module": {
     "with 5 existing servers": {
       topic: function () {
-        var that = this;
-        fs.rmdirSync(badDir);
-        glob(path.resolve(socketDir, '*'), function (er, files) {
-          for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
-          createServers(function() {
-            portfinder.getSocket({
-              path: path.join(badDir, 'test.sock')
-            }, that.callback);
-          });
-        });
+        createServers(function() {
+          portfinder.getSocket({
+            path: path.join(badDir, 'test.sock')
+          }, this.callback);
+        }.bind(this));
       },
       "the getPort() method": {
         topic: function () {
@@ -68,12 +72,11 @@ vows.describe('portfinder').addBatch({
       "the getSocket() method": {
         "with a directory that doesnt exist": {
           topic: function () {
-            var that = this;
             fs.rmdir(badDir, function () {
               portfinder.getSocket({
                 path: path.join(badDir, 'test.sock')
-              }, that.callback);
-            });
+              }, this.callback);
+            }.bind(this));
           },
           "should respond with the first free socket (test.sock)": function (err, socket) {
             assert.isTrue(!err);
@@ -96,11 +99,12 @@ vows.describe('portfinder').addBatch({
   }
 }).addBatch({
   "When the tests are over": {
-    "necessary cleanup should take place": function () {
-      fs.rmdirSync(badDir);
-      glob(path.resolve(socketDir, '*'), function (er, files) {
-        for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
-      });
+    topic: function() {
+      cleanup(this.callback);
+    },
+    "necessary cleanup should have taken place": function (err, wasRun) {
+      assert.isTrue(!err);
+      assert.isTrue(wasRun);
     }
   }
 }).export(module);
