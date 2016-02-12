@@ -35,7 +35,7 @@ function createServers (callback) {
 }
 
 function cleanup(callback) {
-  glob(path.resolve(socketDir, '*'), function (err, files) {
+  glob(path.join(socketDir, '*'), function (err, files) {
     if (err) { callback(err); }
 
     for (var i = 0; i < files.length; i++) {
@@ -52,12 +52,10 @@ vows.describe('portfinder').addBatch({
   "When using portfinder module": {
     "with 5 existing servers": {
       topic: function () {
-        cleanup(function() {
-          createServers(function() {
-            portfinder.getSocket({
-              path: path.join(badDir, 'test.sock')
-            }, this.callback);
-          }.bind(this));
+        createServers(function() {
+          portfinder.getSocket({
+            path: path.join(badDir, 'test.sock')
+          }, this.callback);
         }.bind(this));
       },
       "the getPort() method": {
