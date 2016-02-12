@@ -72,11 +72,10 @@ vows.describe('portfinder').addBatch({
       "the getSocket() method": {
         "with a directory that doesnt exist": {
           topic: function () {
-            fs.rmdir(badDir, function () {
-              portfinder.getSocket({
-                path: path.join(badDir, 'test.sock')
-              }, this.callback);
-            }.bind(this));
+            fs.rmdirSync(badDir);
+            portfinder.getSocket({
+              path: path.join(badDir, 'test.sock')
+            }, this.callback);
           },
           "should respond with the first free socket (test.sock)": function (err, socket) {
             assert.isTrue(!err);
