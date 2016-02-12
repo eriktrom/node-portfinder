@@ -47,11 +47,11 @@ vows.describe('portfinder').addBatch({
   "When using portfinder module": {
     "with 5 existing servers": {
       topic: function () {
-        createServers(function() {
+        // createServers(function() {
           portfinder.getSocket({
             path: path.join(badDir, 'test.sock')
           }, this.callback);
-        }.bind(this));
+        // }.bind(this));
       },
       "the getPort() method": {
         topic: function () {
