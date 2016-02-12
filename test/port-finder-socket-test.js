@@ -37,7 +37,13 @@ function createServers (callback) {
 function cleanup(callback) {
   glob(path.resolve(socketDir, '*'), function (err, files) {
     if (err) { callback(err); }
-    for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
+
+    for (var i = 0; i < files.length; i++) {
+      try { fs.unlinkSync(files[i]); } catch(err) {}
+    }
+
+    try { fs.rmdirSync(badDir); } catch(err) {}
+
     callback(null, true);
   });
 }
@@ -79,30 +85,27 @@ vows.describe('portfinder').addBatch({
             }, this.callback);
           },
           "should respond with the first free socket (test.sock)": function (err, socket) {
-            console.log("err is %o", err);
-            console.log("socket %o", socket);
             assert.isTrue(!err);
             assert.equal(socket, path.join(badDir, 'test.sock'));
           }
         },
-        // "with a directory that exists": {
-        //   topic: function () {
-        //     portfinder.getSocket({
-        //       path: path.join(socketDir, 'exists.sock')
-        //     }, this.callback);
-        //   },
-        //   "should respond with the first free socket (exists.sock)": function (err, socket) {
-        //     assert.isTrue(!err);
-        //     assert.equal(socket, path.join(socketDir, 'exists.sock'));
-        //   }
-        // }
+        "with a directory that exists": {
+          topic: function () {
+            portfinder.getSocket({
+              path: path.join(socketDir, 'exists.sock')
+            }, this.callback);
+          },
+          "should respond with the first free socket (exists.sock)": function (err, socket) {
+            assert.isTrue(!err);
+            assert.equal(socket, path.join(socketDir, 'exists.sock'));
+          }
+        }
       }
     }
   }
 }).addBatch({
   "When the tests are over": {
     topic: function() {
-      fs.rmdirSync(badDir);
       cleanup(this.callback);
     },
     "necessary cleanup should have taken place": function (err, wasRun) {
