@@ -33,6 +33,7 @@ function createServers (callback) {
         console.log("err is %o", err);
         server.close();
       });
+
       base++;
       servers.push(server);
     }, callback);
@@ -42,12 +43,9 @@ function cleanup(callback) {
   glob(path.join(socketDir, '*'), function (err, files) {
     if (err) { callback(err); }
 
-    for (var i = 0; i < files.length; i++) {
-      try { fs.unlinkSync(files[i]); } catch(err) {} // TODO: remove catch
-    }
+    for (var i = 0; i < files.length; i++) { fs.unlinkSync(files[i]); }
 
-    try { fs.rmdirSync(badDir); } catch(err) {} // TODO: remove catch
-
+    fs.rmdirSync(badDir);
     callback(null, true);
   });
 }
@@ -81,7 +79,7 @@ vows.describe('portfinder').addBatch({
       "the getSocket() method": {
         "with a directory that doesnt exist": {
           topic: function () {
-            try { fs.rmdirSync(badDir); } catch(err) {} // TODO: remove catch
+            fs.rmdirSync(badDir);
             portfinder.getSocket({
               path: path.join(badDir, 'test.sock')
             }, this.callback);
