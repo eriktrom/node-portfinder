@@ -29,6 +29,10 @@ function createServers (callback) {
           name = base === 0 ? 'test.sock' : 'test' + base + '.sock';
 
       server.listen(path.join(socketDir, name), next);
+      server.on('error', function(err) {
+        console.log("err is %o", err);
+        server.close();
+      });
       base++;
       servers.push(server);
     }, callback);
@@ -39,10 +43,10 @@ function cleanup(callback) {
     if (err) { callback(err); }
 
     for (var i = 0; i < files.length; i++) {
-      try { fs.unlinkSync(files[i]); } catch(err) {}
+      try { fs.unlinkSync(files[i]); } catch(err) {} // TODO: remove catch
     }
 
-    try { fs.rmdirSync(badDir); } catch(err) {}
+    try { fs.rmdirSync(badDir); } catch(err) {} // TODO: remove catch
 
     callback(null, true);
   });
@@ -77,7 +81,7 @@ vows.describe('portfinder').addBatch({
       "the getSocket() method": {
         "with a directory that doesnt exist": {
           topic: function () {
-            try { fs.rmdirSync(badDir); } catch(err) {}
+            try { fs.rmdirSync(badDir); } catch(err) {} // TODO: remove catch
             portfinder.getSocket({
               path: path.join(badDir, 'test.sock')
             }, this.callback);
