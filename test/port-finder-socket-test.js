@@ -79,7 +79,7 @@ vows.describe('portfinder').addBatch({
       "the getSocket() method": {
         "with a directory that doesnt exist": {
           topic: function () {
-            fs.rmdirSync(badDir);
+            try { fs.rmdirSync(badDir); } catch(err) {}
             portfinder.getSocket({
               path: path.join(badDir, 'test.sock')
             }, this.callback);
